@@ -2,11 +2,17 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                // Pull latest code from your GitHub repo
+                git branch: 'main', url: 'https://github.com/YourUsername/DevOps-CICD-Website.git'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // 🐳 Build the Docker image from your Dockerfile
+                    echo "🛠️ Building Docker Image..."
                     bat 'docker build -t mydevopswebsite:latest .'
                 }
             }
@@ -15,25 +21,32 @@ pipeline {
         stage('Deploy Website') {
             steps {
                 script {
-                    // 🧹 Safely stop & remove existing container (no errors if not found)
-                    powershell '''
-                    try { docker stop mydevops-container } catch { Write-Host "No running container to stop." }
-                    try { docker rm mydevops-container } catch { Write-Host "No container to remove." }
+                    echo "🚀 Deploying Docker Container..."
+
+                    // 🧹 Stop and remove old container safely (no failure if missing)
+                    bat '''
+                    docker ps -a -q -f name=mydevops-container >nul
+                    if %errorlevel%==0 (
+                        docker stop mydevops-container || echo No running container
+                        docker rm mydevops-container || echo No container to remove
+                    ) else (
+                        echo No existing container found
+                    )
                     '''
 
-                    // 🚀 Run new container on port 8080
+                    // 🚀 Run new container
                     bat 'docker run -d -p 8080:80 --name mydevops-container mydevopswebsite:latest'
                 }
             }
         }
-    }
 
-    post {
-        success {
-            echo '✅ Website Deployed Successfully!'
-        }
-        failure {
-            echo '❌ Build Failed. Check logs!'
+        stage('Post Actions') {
+            steps {
+                script {
+                    echo "✅ Deployment Completed Successfully!"
+                    bat 'docker ps'
+                }
+            }
         }
     }
 }
