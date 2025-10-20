@@ -4,13 +4,9 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
-                // ✅ Pull latest code from your actual GitHub repo
-                // 🔹 If repo is public → you can leave out credentialsId
-                // 🔹 If repo is private → add your Jenkins credentialsId (replace 'github-cred')
+                // ✅ Clone from your GitHub repo
                 git branch: 'main',
                     url: 'https://github.com/Aadilkhan321/ci-cd-jenkins-project.git'
-                // If private repo, use this instead:
-                // git branch: 'main', credentialsId: 'github-cred', url: 'https://github.com/Aadilkhan321/ci-cd-jenkins-project.git'
             }
         }
 
@@ -28,16 +24,11 @@ pipeline {
                 script {
                     echo "🚀 Deploying Docker Container..."
 
-                    // 🧹 Stop & remove old container safely (no failure if missing)
+                    // 🧹 Safely stop/remove old container (ignore Docker errors)
                     bat '''
                     echo Checking for existing container...
-                    docker ps -a -q -f name=mydevops-container >nul
-                    if %errorlevel%==0 (
-                        docker stop mydevops-container || echo No running container
-                        docker rm mydevops-container || echo No container to remove
-                    ) else (
-                        echo No existing container found
-                    )
+                    docker stop mydevops-container >nul 2>&1 || echo No running container
+                    docker rm mydevops-container >nul 2>&1 || echo No container to remove
                     '''
 
                     // 🚀 Run new container
