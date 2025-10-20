@@ -13,9 +13,13 @@ pipeline {
         stage('Deploy Website') {
             steps {
                 script {
-                    // Safely stop & remove container if exists (PowerShell ignores errors)
-                    bat 'powershell -Command "docker stop mydevops-container -ErrorAction SilentlyContinue; docker rm mydevops-container -ErrorAction SilentlyContinue"'
-                    // Start new container
+                    // ✅ Use PowerShell directly instead of bat for cleanup
+                    powershell '''
+                    docker stop mydevops-container -ErrorAction SilentlyContinue
+                    docker rm mydevops-container -ErrorAction SilentlyContinue
+                    '''
+
+                    // ✅ Start new container
                     bat 'docker run -d -p 8080:80 --name mydevops-container mydevopswebsite:latest'
                 }
             }
