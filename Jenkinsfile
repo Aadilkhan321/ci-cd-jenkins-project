@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     stages {
+
         stage('Build Docker Image') {
             steps {
                 script {
+                    // 🐳 Build the Docker image from your Dockerfile
                     bat 'docker build -t mydevopswebsite:latest .'
                 }
             }
@@ -13,13 +15,13 @@ pipeline {
         stage('Deploy Website') {
             steps {
                 script {
-                    // ✅ Use PowerShell directly instead of bat for cleanup
+                    // 🧹 Safely stop & remove existing container (no errors if not found)
                     powershell '''
-                    docker stop mydevops-container -ErrorAction SilentlyContinue
-                    docker rm mydevops-container -ErrorAction SilentlyContinue
+                    try { docker stop mydevops-container } catch { Write-Host "No running container to stop." }
+                    try { docker rm mydevops-container } catch { Write-Host "No container to remove." }
                     '''
 
-                    // ✅ Start new container
+                    // 🚀 Run new container on port 8080
                     bat 'docker run -d -p 8080:80 --name mydevops-container mydevopswebsite:latest'
                 }
             }
