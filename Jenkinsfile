@@ -4,8 +4,13 @@ pipeline {
     stages {
         stage('Checkout SCM') {
             steps {
-                // Pull latest code from your GitHub repo
-                git branch: 'main', url: 'https://github.com/YourUsername/DevOps-CICD-Website.git'
+                // ✅ Pull latest code from your actual GitHub repo
+                // 🔹 If repo is public → you can leave out credentialsId
+                // 🔹 If repo is private → add your Jenkins credentialsId (replace 'github-cred')
+                git branch: 'main',
+                    url: 'https://github.com/Aadilkhan321/ci-cd-jenkins-project.git'
+                // If private repo, use this instead:
+                // git branch: 'main', credentialsId: 'github-cred', url: 'https://github.com/Aadilkhan321/ci-cd-jenkins-project.git'
             }
         }
 
@@ -23,8 +28,9 @@ pipeline {
                 script {
                     echo "🚀 Deploying Docker Container..."
 
-                    // 🧹 Stop and remove old container safely (no failure if missing)
+                    // 🧹 Stop & remove old container safely (no failure if missing)
                     bat '''
+                    echo Checking for existing container...
                     docker ps -a -q -f name=mydevops-container >nul
                     if %errorlevel%==0 (
                         docker stop mydevops-container || echo No running container
@@ -47,6 +53,15 @@ pipeline {
                     bat 'docker ps'
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Jenkins Pipeline executed successfully!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Please check the error logs."
         }
     }
 }
