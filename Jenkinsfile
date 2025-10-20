@@ -2,17 +2,10 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout Code') {
-            steps {
-git branch: 'main', url: 'https://github.com/Aadilkhan321/ci-cd-jenkins-project.git'
-
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t mydevopswebsite:latest .'
+                    bat 'docker build -t mydevopswebsite:latest .'
                 }
             }
         }
@@ -20,8 +13,9 @@ git branch: 'main', url: 'https://github.com/Aadilkhan321/ci-cd-jenkins-project.
         stage('Deploy Website') {
             steps {
                 script {
-                    sh 'docker rm -f mydevops-container || true'
-                    sh 'docker run -d -p 8080:80 --name mydevops-container mydevopswebsite:latest'
+                    bat 'docker stop mydevops-container || echo "No existing container"'
+                    bat 'docker rm mydevops-container || echo "No container to remove"'
+                    bat 'docker run -d -p 8080:80 --name mydevops-container mydevopswebsite:latest'
                 }
             }
         }
